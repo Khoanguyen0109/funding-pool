@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Build
+dist
+
+# Env
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage
+
+# TypeORM
+*.sqlite
