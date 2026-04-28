@@ -1,8 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, LinearProgress, Stack, Chip } from '@mui/material';
+import {
+  Box, Card, CardContent, Typography, LinearProgress, Stack, Chip, IconButton, Tooltip,
+} from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import GroupIcon from '@mui/icons-material/Group';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { formatMoney } from '@/utils/currency';
+import { usePatchMeMutation } from '@/store/api/authApi';
 
 interface PoolSummary {
   id: string;
@@ -19,10 +24,18 @@ interface PoolSummary {
 interface PoolCardsProps {
   pools: PoolSummary[];
   loading?: boolean;
+  defaultPoolId?: string | null;
 }
 
-export default function PoolCards({ pools, loading }: PoolCardsProps) {
+export default function PoolCards({ pools, loading, defaultPoolId = null }: PoolCardsProps) {
   const navigate = useNavigate();
+  const [patchMe, { isLoading: patching }] = usePatchMeMutation();
+
+  const handleDefaultClick = (e: React.MouseEvent, poolId: string) => {
+    e.stopPropagation();
+    const next = defaultPoolId === poolId ? null : poolId;
+    patchMe({ defaultPoolId: next });
+  };
 
   if (loading) {
     return (
@@ -72,15 +85,34 @@ export default function PoolCards({ pools, loading }: PoolCardsProps) {
                   <Typography sx={{ fontSize: 24 }}>{pool.icon}</Typography>
                   <Typography variant="subtitle1">{pool.name}</Typography>
                 </Stack>
-                {pool.memberCount != null && (
-                  <Chip
-                    icon={<GroupIcon sx={{ fontSize: 14 }} />}
-                    label={pool.memberCount}
-                    size="small"
-                    variant="outlined"
-                    sx={{ height: 24, fontSize: 12 }}
-                  />
-                )}
+                <Stack direction="row" sx={{ alignItems: 'center', gap: 0.25 }}>
+                  <Tooltip title={defaultPoolId === pool.id ? 'Default pool (click to clear)' : 'Set as default pool'}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        disabled={patching}
+                        onClick={(e) => handleDefaultClick(e, pool.id)}
+                        sx={{ color: defaultPoolId === pool.id ? 'warning.main' : 'text.disabled' }}
+                        aria-label={defaultPoolId === pool.id ? 'Clear default pool' : 'Set as default pool'}
+                      >
+                        {defaultPoolId === pool.id ? (
+                          <StarIcon sx={{ fontSize: 20 }} />
+                        ) : (
+                          <StarBorderIcon sx={{ fontSize: 20 }} />
+                        )}
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  {pool.memberCount != null && (
+                    <Chip
+                      icon={<GroupIcon sx={{ fontSize: 14 }} />}
+                      label={pool.memberCount}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 24, fontSize: 12 }}
+                    />
+                  )}
+                </Stack>
               </Stack>
 
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>

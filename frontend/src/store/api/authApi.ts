@@ -36,7 +36,20 @@ const authApi = apiSlice.injectEndpoints({
       },
       providesTags: ['User'],
     }),
+
+    patchMe: builder.mutation<User, { defaultPoolId?: string | null }>({
+      query: (body) => ({
+        url: '/auth/me',
+        method: 'PATCH',
+        body,
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const { data } = await queryFulfilled;
+        dispatch(setUser(data));
+      },
+      invalidatesTags: ['User', 'Dashboard'],
+    }),
   }),
 });
 
-export const { useLoginMutation, useSignupMutation, useGetMeQuery } = authApi;
+export const { useLoginMutation, useSignupMutation, useGetMeQuery, usePatchMeMutation } = authApi;

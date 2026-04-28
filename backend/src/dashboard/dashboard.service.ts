@@ -6,6 +6,7 @@ import { PoolMembership } from '../pools/entities/pool-membership.entity';
 import { Contribution } from '../contributions/entities/contribution.entity';
 import { Expense } from '../expenses/entities/expense.entity';
 import { Category } from '../categories/entities/category.entity';
+import { UsersService } from '../users/users.service';
 
 interface DashboardSummary {
   totalBalance: number;
@@ -58,6 +59,7 @@ export interface DashboardResponse {
   monthlyFlow: MonthlyFlow[];
   spendingBreakdown: SpendingBreakdown[];
   monthlyTrends: MonthlyTrend[];
+  defaultPoolId: string | null;
 }
 
 const CATEGORY_COLORS = [
@@ -79,9 +81,11 @@ export class DashboardService {
     private readonly expenseRepo: Repository<Expense>,
     @InjectRepository(Category)
     private readonly categoryRepo: Repository<Category>,
+    private readonly usersService: UsersService,
   ) {}
 
   async getDashboard(userId: string): Promise<DashboardResponse> {
+    const defaultPoolId = await this.getDefaultPoolId(userId);
     const poolIds = await this.getUserPoolIds(userId);
 
     if (poolIds.length === 0) {
@@ -92,6 +96,7 @@ export class DashboardService {
         monthlyFlow: [],
         spendingBreakdown: [],
         monthlyTrends: [],
+        defaultPoolId,
       };
     }
 
@@ -105,7 +110,20 @@ export class DashboardService {
         this.getMonthlyTrends(poolIds),
       ]);
 
-    return { summary, pools, categoryBudgets, monthlyFlow, spendingBreakdown, monthlyTrends };
+    return {
+      summary,
+      pools,
+      categoryBudgets,
+      monthlyFlow,
+      spendingBreakdown,
+      monthlyTrends,
+      defaultPoolId,
+    };
+  }
+
+  private async getDefaultPoolId(userId: string): Promise<string | null> {
+    const user = await this.usersService.findById(userId);
+    return user?.defaultPoolId ?? null;
   }
 
   private async getUserPoolIds(userId: string): Promise<string[]> {
@@ -125,11 +143,13 @@ export class DashboardService {
         .createQueryBuilder('c')
         .select('COALESCE(SUM(c.amount), 0)', 'total')
         .where('c.pool_id IN (:...poolIds)', { poolIds })
+        .andWhere('c.deleted_at IS NULL')
         .getRawOne(),
       this.expenseRepo
         .createQueryBuilder('e')
         .select('COALESCE(SUM(e.amount), 0)', 'total')
         .where('e.pool_id IN (:...poolIds)', { poolIds })
+        .andWhere('e.deleted_at IS NULL')
         .getRawOne(),
     ]);
 
@@ -148,8 +168,8 @@ export class DashboardService {
     const pools = await this.poolRepo
       .createQueryBuilder('p')
       .leftJoin('p.members', 'm')
-      .leftJoin('p.contributions', 'c')
-      .leftJoin('p.expenses', 'e')
+      .leftJoin('p.contributions', 'c', 'c.deleted_at IS NULL')
+      .leftJoin('p.expenses', 'e', 'e.deleted_at IS NULL')
       .leftJoin('p.categories', 'cat')
       .select([
         'p.id AS id',
@@ -182,7 +202,7 @@ export class DashboardService {
   private async getCategoryBudgets(poolIds: string[]): Promise<CategoryBudget[]> {
     const results = await this.categoryRepo
       .createQueryBuilder('cat')
-      .leftJoin('cat.expenses', 'e')
+      .leftJoin('cat.expenses', 'e', 'e.deleted_at IS NULL')
       .select([
         'cat.name AS name',
         'COALESCE(cat.budget_amount, 0) AS budget',
@@ -210,6 +230,7 @@ export class DashboardService {
         .select("TO_CHAR(c.created_at, 'YYYY-MM')", 'month')
         .addSelect('COALESCE(SUM(c.amount), 0)', 'total')
         .where('c.pool_id IN (:...poolIds)', { poolIds })
+        .andWhere('c.deleted_at IS NULL')
         .andWhere('c.created_at >= :since', { since: months[0].start })
         .groupBy("TO_CHAR(c.created_at, 'YYYY-MM')")
         .getRawMany(),
@@ -218,6 +239,7 @@ export class DashboardService {
         .select("TO_CHAR(e.created_at, 'YYYY-MM')", 'month')
         .addSelect('COALESCE(SUM(e.amount), 0)', 'total')
         .where('e.pool_id IN (:...poolIds)', { poolIds })
+        .andWhere('e.deleted_at IS NULL')
         .andWhere('e.created_at >= :since', { since: months[0].start })
         .groupBy("TO_CHAR(e.created_at, 'YYYY-MM')")
         .getRawMany(),
@@ -240,6 +262,7 @@ export class DashboardService {
       .select('cat.name', 'name')
       .addSelect('COALESCE(SUM(e.amount), 0)', 'value')
       .where('e.pool_id IN (:...poolIds)', { poolIds })
+      .andWhere('e.deleted_at IS NULL')
       .groupBy('cat.id')
       .addGroupBy('cat.name')
       .orderBy('value', 'DESC')
@@ -261,6 +284,7 @@ export class DashboardService {
         .select("TO_CHAR(c.created_at, 'YYYY-MM')", 'month')
         .addSelect('COALESCE(SUM(c.amount), 0)', 'total')
         .where('c.pool_id IN (:...poolIds)', { poolIds })
+        .andWhere('c.deleted_at IS NULL')
         .groupBy("TO_CHAR(c.created_at, 'YYYY-MM')")
         .orderBy('month', 'ASC')
         .getRawMany(),
@@ -269,6 +293,7 @@ export class DashboardService {
         .select("TO_CHAR(e.created_at, 'YYYY-MM')", 'month')
         .addSelect('COALESCE(SUM(e.amount), 0)', 'total')
         .where('e.pool_id IN (:...poolIds)', { poolIds })
+        .andWhere('e.deleted_at IS NULL')
         .groupBy("TO_CHAR(e.created_at, 'YYYY-MM')")
         .orderBy('month', 'ASC')
         .getRawMany(),

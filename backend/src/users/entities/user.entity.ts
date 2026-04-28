@@ -4,6 +4,8 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
@@ -45,6 +47,13 @@ export class User {
 
   @OneToMany(() => PoolMembership, (membership) => membership.user)
   memberships: PoolMembership[];
+
+  @Column({ name: 'default_pool_id', nullable: true })
+  defaultPoolId: string | null;
+
+  @ManyToOne(() => Pool, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'default_pool_id' })
+  defaultPool: Pool | null;
 
   @BeforeInsert()
   @BeforeUpdate()

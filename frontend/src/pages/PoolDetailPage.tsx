@@ -10,10 +10,14 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import GroupIcon from '@mui/icons-material/Group';
 import { useGetPoolQuery } from '@/store/api/poolsApi';
+import { usePatchMeMutation } from '@/store/api/authApi';
+import { useAppSelector } from '@/store/hooks';
 import { useGetCategoriesQuery } from '@/store/api/categoriesApi';
 import { useGetTransactionsQuery } from '@/store/api/transactionsApi';
 import { useGetPendingMembersQuery } from '@/store/api/membersApi';
@@ -44,6 +48,10 @@ export default function PoolDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+  const defaultPoolId = useAppSelector((s) => s.auth.user?.defaultPoolId ?? null);
+  const [patchMe] = usePatchMeMutation();
+  const isDefaultPool = defaultPoolId === id;
 
   if (isLoading || !pool) {
     return (
@@ -137,6 +145,21 @@ export default function PoolDetailPage() {
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               slotProps={{ paper: { sx: { bgcolor: 'background.paper', minWidth: 160 } } }}
             >
+              <MenuItem
+                onClick={() => {
+                  setMenuAnchor(null);
+                  patchMe({ defaultPoolId: isDefaultPool ? null : id! });
+                }}
+              >
+                <ListItemIcon>
+                  {isDefaultPool ? (
+                    <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                  ) : (
+                    <StarBorderIcon fontSize="small" />
+                  )}
+                </ListItemIcon>
+                <ListItemText>{isDefaultPool ? 'Clear default pool' : 'Set as default pool'}</ListItemText>
+              </MenuItem>
               <MenuItem onClick={() => { setMenuAnchor(null); setDeleteOpen(true); }} sx={{ color: 'error.main' }}>
                 <ListItemIcon><DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
                 <ListItemText>Delete Pool</ListItemText>
@@ -207,7 +230,7 @@ export default function PoolDetailPage() {
 
       {/* Tab: Transactions */}
       {tab === 1 && (
-        <TransactionsTab transactions={transactions} categories={categories} currency={poolCurrency} />
+        <TransactionsTab poolId={id!} transactions={transactions} categories={categories} currency={poolCurrency} />
       )}
 
       {/* Tab: Categories */}

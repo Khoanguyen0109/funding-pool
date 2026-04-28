@@ -13,6 +13,7 @@ export interface User {
   avatar?: string;
   oauthProvider?: OAuthProvider;
   createdAt: string;
+  defaultPoolId?: string | null;
 }
 
 export interface Pool {
@@ -200,4 +201,5 @@ export interface DashboardResponse {
   monthlyFlow: MonthlyFlow[];
   spendingBreakdown: SpendingBreakdownItem[];
   monthlyTrends: MonthlyTrend[];
+  defaultPoolId: string | null;
 }

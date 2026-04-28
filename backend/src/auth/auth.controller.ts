@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, Res, UseGuards, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Req, Res, UseGuards, HttpCode } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -59,5 +60,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   getMe(@Req() req: any) {
     return req.user;
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  patchMe(@Req() req: any, @Body() dto: UpdateMeDto) {
+    return this.authService.patchMe(req.user.id, dto);
   }
 }

@@ -8,6 +8,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { FacebookStrategy } from './strategies/facebook.strategy';
 import { UsersModule } from '../users/users.module';
+import { PoolsModule } from '../pools/pools.module';
 
 function optionalOAuthProviders(): Provider[] {
   const providers: Provider[] = [];
@@ -25,6 +26,7 @@ function optionalOAuthProviders(): Provider[] {
 @Module({
   imports: [
     UsersModule,
+    PoolsModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

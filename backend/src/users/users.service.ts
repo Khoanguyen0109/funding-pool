@@ -14,6 +14,10 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { id } });
   }
 
+  async update(userId: string, partial: Partial<Pick<User, 'defaultPoolId'>>): Promise<void> {
+    await this.usersRepository.update(userId, partial);
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } });
   }

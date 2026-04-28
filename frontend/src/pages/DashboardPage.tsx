@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SummaryCards from '@/components/dashboard/SummaryCards';
@@ -13,8 +14,19 @@ import { useGetDashboardQuery } from '@/store/api/dashboardApi';
 const EMPTY_SUMMARY = { totalBalance: 0, totalContributions: 0, totalExpenses: 0, poolCount: 0 };
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
+  const redirected = useRef(false);
   const { data, isLoading } = useGetDashboardQuery();
   const [createOpen, setCreateOpen] = useState(false);
+
+  useEffect(() => {
+    if (isLoading || !data || redirected.current) return;
+    const { defaultPoolId, pools } = data;
+    if (defaultPoolId && pools.some((p) => p.id === defaultPoolId)) {
+      redirected.current = true;
+      navigate(`/pools/${defaultPoolId}`, { replace: true });
+    }
+  }, [data, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -48,7 +60,7 @@ export default function DashboardPage() {
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5 }}>
           My Pools
         </Typography>
-        <PoolCards pools={pools} />
+        <PoolCards pools={pools} defaultPoolId={data?.defaultPoolId ?? null} />
       </Box>
 
       {monthlyFlow.length > 0 && (

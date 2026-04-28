@@ -1,14 +1,17 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { PoolsService } from '../pools/pools.service';
 import { User } from '../users/entities/user.entity';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
+    private readonly poolsService: PoolsService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -68,5 +71,36 @@ export class AuthService {
 
   async getUserFromToken(userId: string): Promise<User | null> {
     return this.usersService.findById(userId);
+  }
+
+  async patchMe(userId: string, dto: UpdateMeDto): Promise<Omit<User, 'password'>> {
+    if (dto.defaultPoolId === undefined) {
+      const user = await this.usersService.findById(userId);
+      if (!user) throw new UnauthorizedException();
+      return this.stripPassword(user);
+    }
+
+    if (dto.defaultPoolId === null) {
+      await this.usersService.update(userId, { defaultPoolId: null });
+    } else {
+      const membership = await this.poolsService.getMembership(dto.defaultPoolId, userId);
+      if (!membership) {
+        throw new ForbiddenException('You are not a member of this pool');
+      }
+      const pool = await this.poolsService.findById(dto.defaultPoolId);
+      if (!pool) {
+        throw new ForbiddenException('Pool not found');
+      }
+      await this.usersService.update(userId, { defaultPoolId: dto.defaultPoolId });
+    }
+
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new UnauthorizedException();
+    return this.stripPassword(user);
+  }
+
+  private stripPassword(user: User): Omit<User, 'password'> {
+    const { password: _, ...rest } = user as User & { password?: string };
+    return rest as Omit<User, 'password'>;
   }
 }

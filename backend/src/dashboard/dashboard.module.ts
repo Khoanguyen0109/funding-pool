@@ -7,9 +7,11 @@ import { Expense } from '../expenses/entities/expense.entity';
 import { Category } from '../categories/entities/category.entity';
 import { DashboardService } from './dashboard.service';
 import { DashboardController } from './dashboard.controller';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
+    UsersModule,
     TypeOrmModule.forFeature([Pool, PoolMembership, Contribution, Expense, Category]),
   ],
   providers: [DashboardService],
