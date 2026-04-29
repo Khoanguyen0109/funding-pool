@@ -124,4 +124,28 @@ export class PoolsService {
 
     return transactions;
   }
+
+  async softDeleteTransaction(
+    poolId: string,
+    userId: string,
+    transactionId: string,
+    type: 'income' | 'expense',
+  ): Promise<void> {
+    await this.requireMembership(poolId, userId);
+
+    if (type === 'income') {
+      const row = await this.contributionRepo.findOne({
+        where: { id: transactionId, poolId },
+      });
+      if (!row) throw new NotFoundException('Transaction not found');
+      await this.contributionRepo.softRemove(row);
+      return;
+    }
+
+    const row = await this.expenseRepo.findOne({
+      where: { id: transactionId, poolId },
+    });
+    if (!row) throw new NotFoundException('Transaction not found');
+    await this.expenseRepo.softRemove(row);
+  }
 }

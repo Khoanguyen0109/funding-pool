@@ -1,18 +1,22 @@
 import { useState, useMemo } from 'react';
 import {
   Box, Typography, Card, CardContent, Stack, Divider, TextField, MenuItem,
-  ToggleButtonGroup, ToggleButton, Chip,
+  ToggleButtonGroup, ToggleButton, Chip, IconButton, Dialog, DialogTitle,
+  DialogContent, DialogActions, Button, Alert,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import { formatMoney } from '@/utils/currency';
 import type { Transaction, Category } from '@/types';
+import { useDeleteTransactionMutation } from '@/store/api/transactionsApi';
 
 type GroupBy = 'none' | 'daily' | 'monthly';
 type TypeFilter = 'all' | 'income' | 'expense';
 
 interface Props {
+  poolId: string;
   transactions: Transaction[];
   categories: Category[];
   currency: string;
@@ -35,8 +39,12 @@ function formatGroupLabel(key: string, groupBy: GroupBy): string {
   return '';
 }
 
-export default function TransactionsTab({ transactions, categories, currency }: Props) {
+export default function TransactionsTab({ poolId, transactions, categories, currency }: Props) {
   const theme = useTheme();
+
+  const [deleteTransaction, { isLoading: isDeleting }] = useDeleteTransactionMutation();
+  const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
@@ -91,6 +99,23 @@ export default function TransactionsTab({ transactions, categories, currency }: 
     const ids = new Set(transactions.filter((t) => t.category).map((t) => t.category!.id));
     return categories.filter((c) => ids.has(c.id));
   }, [transactions, categories]);
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleteError(null);
+    try {
+      await deleteTransaction({
+        poolId,
+        transactionId: pendingDelete.id,
+        type: pendingDelete.type,
+      }).unwrap();
+      setPendingDelete(null);
+    } catch (err: unknown) {
+      const data = err as { data?: { message?: string | string[] } };
+      const m = data?.data?.message;
+      setDeleteError(Array.isArray(m) ? m.join(', ') : (typeof m === 'string' ? m : 'Could not delete transaction'));
+    }
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -276,6 +301,18 @@ export default function TransactionsTab({ transactions, categories, currency }: 
                       >
                         {tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount, currency)}
                       </Typography>
+                      <IconButton
+                        size="small"
+                        aria-label="Delete transaction"
+                        disabled={isDeleting}
+                        onClick={() => {
+                          setDeleteError(null);
+                          setPendingDelete(tx);
+                        }}
+                        sx={{ color: 'text.secondary', flexShrink: 0 }}
+                      >
+                        <DeleteOutlineOutlinedIcon fontSize="small" />
+                      </IconButton>
                     </Stack>
                   </Box>
                 ))}
@@ -284,6 +321,38 @@ export default function TransactionsTab({ transactions, categories, currency }: 
           </Box>
         ))
       )}
+
+      <Dialog open={Boolean(pendingDelete)} onClose={() => !isDeleting && setPendingDelete(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete this transaction?</DialogTitle>
+        <DialogContent>
+          {pendingDelete && (
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                {pendingDelete.description}
+                {' · '}
+                {pendingDelete.type === 'income' ? '+' : '-'}
+                {formatMoney(pendingDelete.amount, currency)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                It will be removed from balances and lists. This uses a soft delete on the server.
+              </Typography>
+            </>
+          )}
+          {deleteError && (
+            <Alert severity="error" sx={{ mt: 2 }} onClose={() => setDeleteError(null)}>
+              {deleteError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setPendingDelete(null)} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button color="error" variant="contained" onClick={handleConfirmDelete} disabled={isDeleting}>
+            {isDeleting ? 'Deleting…' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Req,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PoolsService } from './pools.service';
 import { CreatePoolDto } from './dto/create-pool.dto';
@@ -25,6 +36,21 @@ export class PoolsController {
   create(@Req() req: any, @Body() dto: CreatePoolDto) {
     const user = req.user as User;
     return this.poolsService.create(user.id, dto);
+  }
+
+  @Delete(':id/transactions/:transactionId')
+  async deleteTransaction(
+    @Param('id') poolId: string,
+    @Param('transactionId') transactionId: string,
+    @Query('type') type: string,
+    @Req() req: any,
+  ) {
+    const user = req.user as User;
+    if (type !== 'income' && type !== 'expense') {
+      throw new BadRequestException('Query parameter "type" must be "income" or "expense"');
+    }
+    await this.poolsService.softDeleteTransaction(poolId, user.id, transactionId, type);
+    return { deleted: true };
   }
 
   @Delete(':id')
