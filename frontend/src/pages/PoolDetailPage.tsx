@@ -273,30 +273,19 @@ export default function PoolDetailPage() {
         scrollButtons={false}
         sx={{ borderBottom: 1, borderColor: 'divider', minHeight: 40, '& .MuiTab-root': { minHeight: 40, fontSize: '0.75rem', py: 0.75, px: 1.5 } }}
       >
-        <Tab label="Summary" />
         <Tab label="Transactions" />
         <Tab label={`Categories (${categories.length})`} />
+        <Tab label="Summary" />
         <Tab label={`Members (${pool.members?.length ?? 0})${pendingMembers.length > 0 ? ` ·${pendingMembers.length}` : ''}`} />
       </Tabs>
 
-      {/* Tab: Summary */}
-      {tab === 0 && (
-        <PoolSummaryTab
-          transactions={transactions}
-          categories={categories}
-          currency={poolCurrency}
-          poolColor={pool.color}
-          memberCount={pool.members?.length ?? 0}
-        />
-      )}
-
       {/* Tab: Transactions */}
-      {tab === 1 && (
+      {tab === 0 && (
         <TransactionsTab poolId={id!} transactions={transactions} categories={categories} currency={poolCurrency} />
       )}
 
       {/* Tab: Categories */}
-      {tab === 2 && (
+      {tab === 1 && (
         <Box>
           <Button
             size="small"
@@ -374,6 +363,17 @@ export default function PoolDetailPage() {
             </Box>
           )}
         </Box>
+      )}
+
+      {/* Tab: Summary */}
+      {tab === 2 && (
+        <PoolSummaryTab
+          transactions={transactions}
+          categories={categories}
+          currency={poolCurrency}
+          poolColor={pool.color}
+          memberCount={pool.members?.length ?? 0}
+        />
       )}
 
       {/* Tab: Members */}
