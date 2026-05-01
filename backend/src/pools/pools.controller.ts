@@ -26,6 +26,13 @@ export class PoolsController {
     return this.poolsService.findAllByUser(user.id);
   }
 
+  /** Static path before `:id` so `/pools/:id/transactions` is not captured by `findOne`. */
+  @Get(':id/transactions')
+  async getTransactions(@Param('id') id: string, @Req() req: any) {
+    const user = req.user as User;
+    return this.poolsService.getTransactions(id, user.id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: any) {
     const user = req.user as User;
@@ -58,11 +65,5 @@ export class PoolsController {
     const user = req.user as User;
     await this.poolsService.remove(id, user.id);
     return { deleted: true };
-  }
-
-  @Get(':id/transactions')
-  async getTransactions(@Param('id') id: string, @Req() req: any) {
-    const user = req.user as User;
-    return this.poolsService.getTransactions(id, user.id);
   }
 }

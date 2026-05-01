@@ -18,6 +18,11 @@ export class UsersService {
     await this.usersRepository.update(userId, partial);
   }
 
+  /** Clears default pool preference for any user pointing at this pool (soft-delete does not fire FK ON DELETE). */
+  async clearDefaultPoolReferencing(poolId: string): Promise<void> {
+    await this.usersRepository.update({ defaultPoolId: poolId }, { defaultPoolId: null });
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } });
   }

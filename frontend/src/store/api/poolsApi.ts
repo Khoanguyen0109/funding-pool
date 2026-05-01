@@ -44,7 +44,7 @@ const poolsApi = apiSlice.injectEndpoints({
         url: `/pools/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: [{ type: 'Pool', id: 'LIST' }, 'Dashboard'],
+      invalidatesTags: (_r, _e, id) => [{ type: 'Pool', id: 'LIST' }, { type: 'Pool', id }, 'Dashboard'],
     }),
   }),
 });

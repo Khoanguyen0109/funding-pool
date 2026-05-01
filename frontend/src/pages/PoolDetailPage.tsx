@@ -49,7 +49,8 @@ export default function PoolDetailPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
-  const defaultPoolId = useAppSelector((s) => s.auth.user?.defaultPoolId ?? null);
+  const user = useAppSelector((s) => s.auth.user);
+  const defaultPoolId = user?.defaultPoolId ?? null;
   const [patchMe] = usePatchMeMutation();
   const isDefaultPool = defaultPoolId === id;
 
@@ -60,6 +61,11 @@ export default function PoolDetailPage() {
       </Box>
     );
   }
+
+  const isPoolOwner =
+    !!user &&
+    (pool.ownerId === user.id ||
+      (pool.members ?? []).some((m) => m.userId === user.id && m.role === 'owner'));
 
   const poolCurrency = pool.currency || 'VND';
 
@@ -160,10 +166,12 @@ export default function PoolDetailPage() {
                 </ListItemIcon>
                 <ListItemText>{isDefaultPool ? 'Clear default pool' : 'Set as default pool'}</ListItemText>
               </MenuItem>
-              <MenuItem onClick={() => { setMenuAnchor(null); setDeleteOpen(true); }} sx={{ color: 'error.main' }}>
-                <ListItemIcon><DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
-                <ListItemText>Delete Pool</ListItemText>
-              </MenuItem>
+              {isPoolOwner && (
+                <MenuItem onClick={() => { setMenuAnchor(null); setDeleteOpen(true); }} sx={{ color: 'error.main' }}>
+                  <ListItemIcon><DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
+                  <ListItemText>Delete Pool</ListItemText>
+                </MenuItem>
+              )}
             </Menu>
           </Stack>
 

@@ -5,6 +5,7 @@ import { Pool } from './entities/pool.entity';
 import { PoolMembership, MemberRole } from './entities/pool-membership.entity';
 import { Contribution } from '../contributions/entities/contribution.entity';
 import { Expense } from '../expenses/entities/expense.entity';
+import { UsersService } from '../users/users.service';
 import { CreatePoolDto } from './dto/create-pool.dto';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class PoolsService {
     private readonly contributionRepo: Repository<Contribution>,
     @InjectRepository(Expense)
     private readonly expenseRepo: Repository<Expense>,
+    private readonly usersService: UsersService,
   ) {}
 
   async findAllByUser(userId: string): Promise<Pool[]> {
@@ -73,6 +75,7 @@ export class PoolsService {
     const pool = await this.poolsRepository.findOne({ where: { id: poolId } });
     if (!pool) throw new NotFoundException('Pool not found');
     if (pool.ownerId !== userId) throw new ForbiddenException('Only the pool owner can delete this pool');
+    await this.usersService.clearDefaultPoolReferencing(poolId);
     await this.poolsRepository.softRemove(pool);
   }
 
