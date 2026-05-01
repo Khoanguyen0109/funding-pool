@@ -13,6 +13,7 @@ import { InvitesModule } from './invites/invites.module';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PusherModule } from './pusher/pusher.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PusherModule } from './pusher/pusher.module';
     ExpensesModule,
     InvitesModule,
     PusherModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

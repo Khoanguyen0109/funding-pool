@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, Typography, CircularProgress, LinearProgress, Box, Alert,
-} from '@mui/material';
+import { Button, Typography, CircularProgress, LinearProgress, Box, Alert, Stack } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import BottomSheet from '@/components/common/BottomSheet';
 import { useDeletePoolMutation } from '@/store/api/poolsApi';
 
 function messageFromRtkError(error: FetchBaseQueryError | undefined): string {
@@ -29,15 +27,12 @@ interface Props {
   onDeleted: () => void;
 }
 
-export default function DeletePoolDialog({ poolId, poolName, open, onClose, onDeleted }: Props) {
+export default function DeletePoolSheet({ poolId, poolName, open, onClose, onDeleted }: Props) {
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
   const [deletePool, { isLoading, isError, error, reset }] = useDeletePoolMutation();
 
   useEffect(() => {
-    if (!open) {
-      setCountdown(COUNTDOWN_SECONDS);
-      return;
-    }
+    if (!open) { setCountdown(COUNTDOWN_SECONDS); return; }
     reset();
     setCountdown(COUNTDOWN_SECONDS);
   }, [open, reset]);
@@ -62,50 +57,43 @@ export default function DeletePoolDialog({ poolId, poolName, open, onClose, onDe
   const progress = ((COUNTDOWN_SECONDS - countdown) / COUNTDOWN_SECONDS) * 100;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { bgcolor: 'background.paper' } } }}>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700, color: 'error.main' }}>
-        <WarningAmberIcon /> Delete Pool
-      </DialogTitle>
-      <DialogContent>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          Are you sure you want to delete <strong>{poolName}</strong>? This will permanently remove all categories, contributions, expenses, and members.
-        </Typography>
-        <Typography variant="body2" color="error.main" sx={{ fontWeight: 600, mb: 2 }}>
+    <BottomSheet open={open} onClose={onClose} title="Delete Pool">
+      <Stack spacing={2} sx={{ mt: 1 }}>
+        <Stack direction="row" spacing={1} alignItems="flex-start">
+          <WarningAmberIcon color="error" sx={{ mt: 0.25, flexShrink: 0 }} />
+          <Typography variant="body1">
+            Are you sure you want to delete <strong>{poolName}</strong>? This will permanently remove all categories, contributions, expenses, and members.
+          </Typography>
+        </Stack>
+        <Typography variant="body2" color="error.main" sx={{ fontWeight: 600 }}>
           This action cannot be undone.
         </Typography>
-
         {isError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error">
             {messageFromRtkError(error as FetchBaseQueryError | undefined)}
           </Alert>
         )}
-
         {countdown > 0 && (
           <Box>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
               Confirm button enables in {countdown}s...
             </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={progress}
-              color="error"
-              sx={{ height: 4, borderRadius: 2 }}
-            />
+            <LinearProgress variant="determinate" value={progress} color="error" sx={{ height: 4, borderRadius: 2 }} />
           </Box>
         )}
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} color="inherit">Cancel</Button>
-        <Button
-          onClick={handleDelete}
-          variant="contained"
-          color="error"
-          disabled={!enabled}
-          startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : undefined}
-        >
-          {countdown > 0 ? `Delete (${countdown}s)` : 'Delete Pool'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        <Stack direction="row" spacing={1} justifyContent="flex-end">
+          <Button onClick={onClose} color="inherit">Cancel</Button>
+          <Button
+            onClick={handleDelete}
+            variant="contained"
+            color="error"
+            disabled={!enabled}
+            startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            {countdown > 0 ? `Delete (${countdown}s)` : 'Delete Pool'}
+          </Button>
+        </Stack>
+      </Stack>
+    </BottomSheet>
   );
 }

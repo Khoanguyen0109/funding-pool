@@ -7,6 +7,8 @@ import DashboardPage from '@/pages/DashboardPage';
 import PoolDetailPage from '@/pages/PoolDetailPage';
 import JoinPoolPage from '@/pages/JoinPoolPage';
 import AuthCallbackPage from '@/pages/AuthCallbackPage';
+import AccountPage from '@/pages/AccountPage';
+import AnalyzePage from '@/pages/AnalyzePage';
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +38,8 @@ export const router = createBrowserRouter([
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'pools/:id', element: <PoolDetailPage /> },
       { path: 'join/:token', element: <JoinPoolPage /> },
+      { path: 'account', element: <AccountPage /> },
+      { path: 'analyze', element: <AnalyzePage /> },
     ],
   },
 ]);

@@ -13,7 +13,7 @@ export default function AuthCallbackPage() {
     const token = searchParams.get('token');
     if (token) {
       dispatch(setCredentials({ token }));
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard', { replace: true, state: { fromLogin: true } });
     } else {
       navigate('/login', { replace: true });
     }

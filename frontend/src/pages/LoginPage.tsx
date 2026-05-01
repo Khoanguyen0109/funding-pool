@@ -51,7 +51,7 @@ export default function LoginPage() {
     try {
       const payload = method === 'email' ? { email, password } : { phone, password };
       await loginMutation(payload).unwrap();
-      navigate(redirectTo, { replace: true });
+      navigate(redirectTo, { replace: true, state: { fromLogin: true } });
     } catch (err: any) {
       setError(err.data?.message || 'Invalid credentials');
     }

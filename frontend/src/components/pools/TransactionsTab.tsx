@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import {
   Box, Typography, Card, CardContent, Stack, Divider, TextField, MenuItem,
-  ToggleButtonGroup, ToggleButton, Chip, IconButton, Dialog, DialogTitle,
-  DialogContent, DialogActions, Button, Alert,
+  ToggleButtonGroup, ToggleButton, Chip, IconButton, Button, Alert,
 } from '@mui/material';
+import BottomSheet from '@/components/common/BottomSheet';
 import { alpha, useTheme } from '@mui/material/styles';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
@@ -322,37 +322,38 @@ export default function TransactionsTab({ poolId, transactions, categories, curr
         ))
       )}
 
-      <Dialog open={Boolean(pendingDelete)} onClose={() => !isDeleting && setPendingDelete(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete this transaction?</DialogTitle>
-        <DialogContent>
-          {pendingDelete && (
-            <>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                {pendingDelete.description}
-                {' · '}
-                {pendingDelete.type === 'income' ? '+' : '-'}
-                {formatMoney(pendingDelete.amount, currency)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                It will be removed from balances and lists. This uses a soft delete on the server.
-              </Typography>
-            </>
-          )}
-          {deleteError && (
-            <Alert severity="error" sx={{ mt: 2 }} onClose={() => setDeleteError(null)}>
-              {deleteError}
-            </Alert>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setPendingDelete(null)} disabled={isDeleting}>
-            Cancel
-          </Button>
-          <Button color="error" variant="contained" onClick={handleConfirmDelete} disabled={isDeleting}>
-            {isDeleting ? 'Deleting…' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <BottomSheet
+        open={Boolean(pendingDelete)}
+        onClose={() => !isDeleting && setPendingDelete(null)}
+        title="Delete this transaction?"
+      >
+        {pendingDelete && (
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              {pendingDelete.description}
+              {' · '}
+              {pendingDelete.type === 'income' ? '+' : '-'}
+              {formatMoney(pendingDelete.amount, currency)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              It will be removed from balances and lists. This uses a soft delete on the server.
+            </Typography>
+            {deleteError && (
+              <Alert severity="error" onClose={() => setDeleteError(null)}>
+                {deleteError}
+              </Alert>
+            )}
+            <Stack direction="row" spacing={1} justifyContent="flex-end">
+              <Button onClick={() => setPendingDelete(null)} disabled={isDeleting}>
+                Cancel
+              </Button>
+              <Button color="error" variant="contained" onClick={handleConfirmDelete} disabled={isDeleting}>
+                {isDeleting ? 'Deleting…' : 'Delete'}
+              </Button>
+            </Stack>
+          </Stack>
+        )}
+      </BottomSheet>
     </Box>
   );
 }
