@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
 import {
   Box, Typography, Card, CardContent, Stack, Divider, TextField, MenuItem,
-  ToggleButtonGroup, ToggleButton, Chip, IconButton, Button, Alert,
+  ToggleButtonGroup, ToggleButton, Chip, IconButton, Button, Alert, Badge,
 } from '@mui/material';
 import BottomSheet from '@/components/common/BottomSheet';
 import { alpha, useTheme } from '@mui/material/styles';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import { formatMoney } from '@/utils/currency';
 import type { Transaction, Category } from '@/types';
 import { useDeleteTransactionMutation } from '@/store/api/transactionsApi';
@@ -49,9 +50,9 @@ export default function TransactionsTab({ poolId, transactions, categories, curr
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const today = new Date().toISOString().slice(0, 10);
-  const [dateFrom, setDateFrom] = useState(today);
-  const [dateTo, setDateTo] = useState(today);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const filtered = useMemo(() => {
     let result = transactions;
@@ -75,6 +76,15 @@ export default function TransactionsTab({ poolId, transactions, categories, curr
 
     return result;
   }, [transactions, typeFilter, categoryFilter, dateFrom, dateTo]);
+
+  const activeFilterCount = (categoryFilter !== 'all' ? 1 : 0) + (dateFrom || dateTo ? 1 : 0) + (groupBy !== 'none' ? 1 : 0);
+
+  const clearAllFilters = () => {
+    setCategoryFilter('all');
+    setDateFrom('');
+    setDateTo('');
+    setGroupBy('none');
+  };
 
   const filteredIncome = filtered.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const filteredExpense = filtered.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -119,84 +129,147 @@ export default function TransactionsTab({ poolId, transactions, categories, curr
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Filters */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+      {/* Filters — top row */}
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
         <ToggleButtonGroup
           value={typeFilter}
           exclusive
           onChange={(_, v) => v && setTypeFilter(v)}
           size="small"
-          sx={{ height: 32 }}
+          sx={{ height: 32, flex: 1 }}
         >
-          <ToggleButton value="all" sx={{ px: 1.5, fontSize: 12 }}>All</ToggleButton>
-          <ToggleButton value="income" sx={{ px: 1.5, fontSize: 12, color: 'success.main' }}>Income</ToggleButton>
-          <ToggleButton value="expense" sx={{ px: 1.5, fontSize: 12, color: 'error.main' }}>Expense</ToggleButton>
+          <ToggleButton value="all" sx={{ flex: 1, fontSize: 12 }}>All</ToggleButton>
+          <ToggleButton value="income" sx={{ flex: 1, fontSize: 12, color: 'success.main' }}>Income</ToggleButton>
+          <ToggleButton value="expense" sx={{ flex: 1, fontSize: 12, color: 'error.main' }}>Expense</ToggleButton>
         </ToggleButtonGroup>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-
-        <ToggleButtonGroup
-          value={groupBy}
-          exclusive
-          onChange={(_, v) => v !== null && setGroupBy(v)}
+        <IconButton
           size="small"
-          sx={{ height: 32 }}
+          onClick={() => setFilterSheetOpen(true)}
+          sx={{
+            border: 1,
+            borderColor: activeFilterCount > 0 ? 'primary.main' : 'divider',
+            borderRadius: 1,
+            width: 34,
+            height: 32,
+            flexShrink: 0,
+          }}
+          aria-label="Open filters"
         >
-          <ToggleButton value="none" sx={{ px: 1.5, fontSize: 12 }}>List</ToggleButton>
-          <ToggleButton value="daily" sx={{ px: 1.5, fontSize: 12 }}>Daily</ToggleButton>
-          <ToggleButton value="monthly" sx={{ px: 1.5, fontSize: 12 }}>Monthly</ToggleButton>
-        </ToggleButtonGroup>
+          <Badge badgeContent={activeFilterCount} color="primary" sx={{ '& .MuiBadge-badge': { fontSize: 10, minWidth: 16, height: 16 } }}>
+            <FilterListIcon sx={{ fontSize: 18 }} />
+          </Badge>
+        </IconButton>
+      </Stack>
 
-        {usedCategories.length > 0 && (
-          <>
-            <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-            <TextField
-              select
-              size="small"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              sx={{ minWidth: 130, '& .MuiInputBase-root': { height: 32, fontSize: 12 } }}
-            >
-              <MenuItem value="all">All Categories</MenuItem>
-              {usedCategories.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
-                  {cat.icon} {cat.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          </>
-        )}
-
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
-          <TextField
-            type="date"
-            size="small"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ width: 135, '& .MuiInputBase-root': { height: 32, fontSize: 12 } }}
-          />
-          <Typography variant="caption" color="text.secondary">—</Typography>
-          <TextField
-            type="date"
-            size="small"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ width: 135, '& .MuiInputBase-root': { height: 32, fontSize: 12 } }}
-          />
-          {(dateFrom !== today || dateTo !== today) && (
+      {/* Active filter chips */}
+      {activeFilterCount > 0 && (
+        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+          {groupBy !== 'none' && (
             <Chip
-              label="Reset"
+              label={groupBy === 'daily' ? 'Group: Daily' : 'Group: Monthly'}
               size="small"
-              onDelete={() => { setDateFrom(today); setDateTo(today); }}
+              onDelete={() => setGroupBy('none')}
               sx={{ fontSize: 11, height: 24 }}
             />
           )}
-        </Box>
-      </Box>
+          {categoryFilter !== 'all' && (
+            <Chip
+              label={(() => { const c = usedCategories.find((c) => c.id === categoryFilter); return c ? `${c.icon} ${c.name}` : 'Category'; })()}
+              size="small"
+              onDelete={() => setCategoryFilter('all')}
+              sx={{ fontSize: 11, height: 24 }}
+            />
+          )}
+          {(dateFrom || dateTo) && (
+            <Chip
+              label={dateFrom && dateTo ? `${dateFrom} – ${dateTo}` : dateFrom || dateTo}
+              size="small"
+              onDelete={() => { setDateFrom(''); setDateTo(''); }}
+              sx={{ fontSize: 11, height: 24 }}
+            />
+          )}
+        </Stack>
+      )}
+
+      {/* Filter bottom sheet */}
+      <BottomSheet open={filterSheetOpen} onClose={() => setFilterSheetOpen(false)} title="Filters">
+        <Stack spacing={2.5} sx={{ mt: 1 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Group by
+            </Typography>
+            <ToggleButtonGroup
+              value={groupBy}
+              exclusive
+              onChange={(_, v) => v !== null && setGroupBy(v)}
+              size="small"
+              fullWidth
+              sx={{ height: 36 }}
+            >
+              <ToggleButton value="none" sx={{ flex: 1, fontSize: 13 }}>List</ToggleButton>
+              <ToggleButton value="daily" sx={{ flex: 1, fontSize: 13 }}>Daily</ToggleButton>
+              <ToggleButton value="monthly" sx={{ flex: 1, fontSize: 13 }}>Monthly</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+
+          {usedCategories.length > 0 && (
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Category
+              </Typography>
+              <TextField
+                select
+                size="small"
+                fullWidth
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <MenuItem value="all">All Categories</MenuItem>
+                {usedCategories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.id}>{cat.icon} {cat.name}</MenuItem>
+                ))}
+              </TextField>
+            </Box>
+          )}
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Date range
+            </Typography>
+            <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+              <TextField
+                type="date"
+                size="small"
+                fullWidth
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+                placeholder="From"
+              />
+              <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>—</Typography>
+              <TextField
+                type="date"
+                size="small"
+                fullWidth
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+                placeholder="To"
+              />
+            </Stack>
+          </Box>
+
+          <Stack direction="row" sx={{ justifyContent: 'space-between', pt: 1 }}>
+            <Button size="small" color="inherit" onClick={clearAllFilters} disabled={activeFilterCount === 0}>
+              Clear all
+            </Button>
+            <Button size="small" variant="contained" onClick={() => setFilterSheetOpen(false)}>
+              Done
+            </Button>
+          </Stack>
+        </Stack>
+      </BottomSheet>
 
       {/* Summary bar */}
       <Stack direction="row" spacing={2}>
