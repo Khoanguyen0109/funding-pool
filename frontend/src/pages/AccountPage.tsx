@@ -29,7 +29,7 @@ export default function AccountPage() {
       {/* Profile card */}
       <Card>
         <CardContent>
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
             <Avatar
               src={user?.avatar}
               alt={user?.name}
@@ -56,25 +56,25 @@ export default function AccountPage() {
           <Card>
             <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
               <Stack divider={<Divider />}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5 }}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', px: 2, py: 1.5 }}>
                   <Typography variant="body2" color="text.secondary">Total Balance</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 700 }}>
                     {formatMoney(summary?.totalBalance ?? 0, defaultCurrency)}
                   </Typography>
                 </Stack>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5 }}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', px: 2, py: 1.5 }}>
                   <Typography variant="body2" color="text.secondary">Total Contributed</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 700, color: 'success.main' }}>
                     {formatMoney(summary?.totalContributions ?? 0, defaultCurrency)}
                   </Typography>
                 </Stack>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5 }}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', px: 2, py: 1.5 }}>
                   <Typography variant="body2" color="text.secondary">Total Spent</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 700, color: 'error.main' }}>
                     {formatMoney(summary?.totalExpenses ?? 0, defaultCurrency)}
                   </Typography>
                 </Stack>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5 }}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', px: 2, py: 1.5 }}>
                   <Typography variant="body2" color="text.secondary">Pools</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 700 }}>
                     {summary?.poolCount ?? 0}

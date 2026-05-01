@@ -343,7 +343,7 @@ export default function TransactionsTab({ poolId, transactions, categories, curr
                 {deleteError}
               </Alert>
             )}
-            <Stack direction="row" spacing={1} justifyContent="flex-end">
+            <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => setPendingDelete(null)} disabled={isDeleting}>
                 Cancel
               </Button>

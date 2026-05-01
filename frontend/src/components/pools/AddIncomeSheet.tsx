@@ -74,7 +74,7 @@ export default function AddIncomeSheet({ poolId, currency, open, onClose }: Prop
           onChange={(e) => setNote(e.target.value)}
           fullWidth
         />
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
           <Button onClick={reset} color="inherit">Cancel</Button>
           <Button
             onClick={handleSubmit}

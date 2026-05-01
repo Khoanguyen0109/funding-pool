@@ -59,7 +59,7 @@ export default function DeletePoolSheet({ poolId, poolName, open, onClose, onDel
   return (
     <BottomSheet open={open} onClose={onClose} title="Delete Pool">
       <Stack spacing={2} sx={{ mt: 1 }}>
-        <Stack direction="row" spacing={1} alignItems="flex-start">
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
           <WarningAmberIcon color="error" sx={{ mt: 0.25, flexShrink: 0 }} />
           <Typography variant="body1">
             Are you sure you want to delete <strong>{poolName}</strong>? This will permanently remove all categories, contributions, expenses, and members.
@@ -81,7 +81,7 @@ export default function DeletePoolSheet({ poolId, poolName, open, onClose, onDel
             <LinearProgress variant="determinate" value={progress} color="error" sx={{ height: 4, borderRadius: 2 }} />
           </Box>
         )}
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
           <Button onClick={onClose} color="inherit">Cancel</Button>
           <Button
             onClick={handleDelete}

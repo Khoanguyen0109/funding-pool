@@ -434,7 +434,7 @@ export default function PoolDetailPage() {
               {deleteCategoryError}
             </Alert>
           )}
-          <Stack direction="row" spacing={1} justifyContent="flex-end">
+          <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
             <Button
               onClick={() => setDeleteCategoryTarget(null)}
               color="inherit"

@@ -101,7 +101,7 @@ export default function AddExpenseSheet({ poolId, currency, categories, open, on
             />
           </>
         )}
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
           <Button onClick={reset} color="inherit">Cancel</Button>
           <Button
             onClick={handleSubmit}

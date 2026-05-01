@@ -97,7 +97,7 @@ export default function EditCategorySheet({ poolId, currency, category, open, on
         {error && (
           <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
         )}
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
           <Button onClick={onClose} color="inherit" disabled={isLoading}>Cancel</Button>
           <Button
             onClick={handleSubmit}

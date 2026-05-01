@@ -133,7 +133,7 @@ export default function CreatePoolSheet({ open, onClose }: Props) {
             ))}
           </Stack>
         </Box>
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
           <Button onClick={resetAndClose} color="inherit">Cancel</Button>
           <Button
             onClick={handleSubmit}

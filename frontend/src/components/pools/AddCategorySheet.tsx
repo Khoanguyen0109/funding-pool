@@ -84,7 +84,7 @@ export default function AddCategorySheet({ poolId, currency, open, onClose }: Pr
             },
           }}
         />
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
           <Button onClick={reset} color="inherit">Cancel</Button>
           <Button
             onClick={handleSubmit}
