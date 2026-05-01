@@ -62,6 +62,16 @@ export default function PoolDetailPage() {
   const [patchMe] = usePatchMeMutation();
   const isDefaultPool = defaultPoolId === id;
 
+  const spentByCategory = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const tx of transactions) {
+      if (tx.type === 'expense' && tx.category) {
+        map.set(tx.category.id, (map.get(tx.category.id) ?? 0) + tx.amount);
+      }
+    }
+    return map;
+  }, [transactions]);
+
   if (isLoading || !pool) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -84,16 +94,6 @@ export default function PoolDetailPage() {
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
   const balance = totalContributions - totalExpenses;
-
-  const spentByCategory = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const tx of transactions) {
-      if (tx.type === 'expense' && tx.category) {
-        map.set(tx.category.id, (map.get(tx.category.id) ?? 0) + tx.amount);
-      }
-    }
-    return map;
-  }, [transactions]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
