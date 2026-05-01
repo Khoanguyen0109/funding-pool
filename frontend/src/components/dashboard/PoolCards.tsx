@@ -79,11 +79,13 @@ export default function PoolCards({ pools, loading, defaultPoolId = null }: Pool
               borderTop: `3px solid ${pool.color}`,
             }}
           >
-            <CardContent sx={{ p: 2.5 }}>
-              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
-                  <Typography sx={{ fontSize: 24 }}>{pool.icon}</Typography>
-                  <Typography variant="subtitle1">{pool.name}</Typography>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2.5 }, '&:last-child': { pb: { xs: 1.5, sm: 2.5 } } }}>
+              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: { xs: 0.75, sm: 1.5 } }}>
+                <Stack direction="row" sx={{ alignItems: 'center', gap: 0.75 }}>
+                  <Typography sx={{ fontSize: { xs: 18, sm: 24 }, lineHeight: 1 }}>{pool.icon}</Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                    {pool.name}
+                  </Typography>
                 </Stack>
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 0.25 }}>
                   <Tooltip title={defaultPoolId === pool.id ? 'Default pool (click to clear)' : 'Set as default pool'}>
@@ -92,38 +94,41 @@ export default function PoolCards({ pools, loading, defaultPoolId = null }: Pool
                         size="small"
                         disabled={patching}
                         onClick={(e) => handleDefaultClick(e, pool.id)}
-                        sx={{ color: defaultPoolId === pool.id ? 'warning.main' : 'text.disabled' }}
+                        sx={{ color: defaultPoolId === pool.id ? 'warning.main' : 'text.disabled', p: 0.5 }}
                         aria-label={defaultPoolId === pool.id ? 'Clear default pool' : 'Set as default pool'}
                       >
                         {defaultPoolId === pool.id ? (
-                          <StarIcon sx={{ fontSize: 20 }} />
+                          <StarIcon sx={{ fontSize: { xs: 16, sm: 20 } }} />
                         ) : (
-                          <StarBorderIcon sx={{ fontSize: 20 }} />
+                          <StarBorderIcon sx={{ fontSize: { xs: 16, sm: 20 } }} />
                         )}
                       </IconButton>
                     </span>
                   </Tooltip>
                   {pool.memberCount != null && (
                     <Chip
-                      icon={<GroupIcon sx={{ fontSize: 14 }} />}
+                      icon={<GroupIcon sx={{ fontSize: 12 }} />}
                       label={pool.memberCount}
                       size="small"
                       variant="outlined"
-                      sx={{ height: 24, fontSize: 12 }}
+                      sx={{ height: 20, fontSize: 11 }}
                     />
                   )}
                 </Stack>
               </Stack>
 
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, mb: 0.25, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+              >
                 {formatMoney(pool.balance, currency)}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: totalBudget > 0 ? 1 : 0, display: 'block' }}>
                 Balance
               </Typography>
 
               {totalBudget > 0 && (
-                <Box sx={{ mb: 0.5 }}>
+                <Box>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5 }}>
                     <Typography variant="caption" color="text.secondary">
                       {formatMoney(totalSpent, currency)} spent
@@ -136,10 +141,10 @@ export default function PoolCards({ pools, loading, defaultPoolId = null }: Pool
                     variant="determinate"
                     value={pct}
                     sx={{
-                      height: 6,
-                      borderRadius: 3,
+                      height: 4,
+                      borderRadius: 2,
                       '& .MuiLinearProgress-bar': {
-                        borderRadius: 3,
+                        borderRadius: 2,
                         bgcolor: overBudget ? 'error.main' : pool.color,
                       },
                     }}
