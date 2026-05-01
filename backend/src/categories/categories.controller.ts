@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PoolsService } from '../pools/pools.service';
 import { CategoriesService } from './categories.service';
@@ -42,5 +42,16 @@ export class CategoriesController {
     const user = req.user as User;
     await this.poolsService.requireMembership(poolId, user.id);
     return this.categoriesService.update(categoryId, poolId, dto);
+  }
+
+  @Delete(':categoryId')
+  async remove(
+    @Param('poolId') poolId: string,
+    @Param('categoryId') categoryId: string,
+    @Req() req: any,
+  ) {
+    const user = req.user as User;
+    await this.poolsService.requireMembership(poolId, user.id);
+    return this.categoriesService.softDelete(categoryId, poolId);
   }
 }

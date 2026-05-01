@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, CircularProgress, Stack, Card, CardContent,
   Chip, Avatar, Divider, IconButton, Tab, Tabs, Menu, MenuItem, ListItemIcon, ListItemText,
+  Dialog, DialogTitle, DialogContent, DialogActions, Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import { alpha, useTheme } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
@@ -19,7 +21,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import { useGetPoolQuery } from '@/store/api/poolsApi';
 import { usePatchMeMutation } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
-import { useGetCategoriesQuery } from '@/store/api/categoriesApi';
+import { useGetCategoriesQuery, useDeleteCategoryMutation } from '@/store/api/categoriesApi';
 import { useGetTransactionsQuery } from '@/store/api/transactionsApi';
 import { useGetPendingMembersQuery } from '@/store/api/membersApi';
 import { formatMoney } from '@/utils/currency';
@@ -51,6 +53,9 @@ export default function PoolDetailPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [editCategoryTarget, setEditCategoryTarget] = useState<import('@/types').Category | null>(null);
+  const [deleteCategoryTarget, setDeleteCategoryTarget] = useState<import('@/types').Category | null>(null);
+  const [deleteCategoryError, setDeleteCategoryError] = useState<string | null>(null);
+  const [deleteCategory, { isLoading: isDeletingCategory }] = useDeleteCategoryMutation();
 
   const user = useAppSelector((s) => s.auth.user);
   const defaultPoolId = user?.defaultPoolId ?? null;
@@ -273,6 +278,14 @@ export default function PoolDetailPage() {
                       >
                         <EditIcon sx={{ fontSize: 16 }} />
                       </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => { setDeleteCategoryError(null); setDeleteCategoryTarget(cat); }}
+                        sx={{ color: 'text.secondary' }}
+                        aria-label={`Delete ${cat.name}`}
+                      >
+                        <DeleteOutlineOutlinedIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
                       Budget: {formatMoney(cat.budgetAmount, poolCurrency)}
@@ -323,6 +336,61 @@ export default function PoolDetailPage() {
         open={Boolean(editCategoryTarget)}
         onClose={() => setEditCategoryTarget(null)}
       />
+
+      {/* Delete category confirm dialog */}
+      <Dialog
+        open={Boolean(deleteCategoryTarget)}
+        onClose={() => !isDeletingCategory && setDeleteCategoryTarget(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Delete category?</DialogTitle>
+        <DialogContent>
+          {deleteCategoryTarget && (
+            <Typography variant="body2" color="text.secondary">
+              <strong>{deleteCategoryTarget.icon} {deleteCategoryTarget.name}</strong> will be removed from
+              the category list and budget view. Past transactions already logged under this
+              category are preserved — they will still appear in the transaction history.
+            </Typography>
+          )}
+          {deleteCategoryError && (
+            <Alert severity="error" sx={{ mt: 2 }} onClose={() => setDeleteCategoryError(null)}>
+              {deleteCategoryError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteCategoryTarget(null)}
+            color="inherit"
+            disabled={isDeletingCategory}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            disabled={isDeletingCategory}
+            startIcon={isDeletingCategory ? <CircularProgress size={16} /> : undefined}
+            onClick={async () => {
+              if (!deleteCategoryTarget) return;
+              setDeleteCategoryError(null);
+              try {
+                await deleteCategory({ poolId: id!, categoryId: deleteCategoryTarget.id }).unwrap();
+                setDeleteCategoryTarget(null);
+              } catch (err: unknown) {
+                const data = err as { data?: { message?: string | string[] } };
+                const m = data?.data?.message;
+                setDeleteCategoryError(
+                  Array.isArray(m) ? m.join(', ') : (typeof m === 'string' ? m : 'Could not delete category'),
+                );
+              }
+            }}
+          >
+            {isDeletingCategory ? 'Deleting…' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <DeletePoolDialog
         poolId={id!}
         poolName={pool.name}

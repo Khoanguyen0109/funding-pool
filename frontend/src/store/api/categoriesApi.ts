@@ -47,7 +47,24 @@ const categoriesApi = apiSlice.injectEndpoints({
         'Dashboard',
       ],
     }),
+    deleteCategory: builder.mutation<{ expenseCount: number }, { poolId: string; categoryId: string }>({
+      query: ({ poolId, categoryId }) => ({
+        url: `/pools/${poolId}/categories/${categoryId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { poolId }) => [
+        { type: 'Category', id: poolId },
+        { type: 'Pool', id: poolId },
+        { type: 'Transaction', id: poolId },
+        'Dashboard',
+      ],
+    }),
   }),
 });
 
-export const { useGetCategoriesQuery, useCreateCategoryMutation, useUpdateCategoryMutation } = categoriesApi;
+export const {
+  useGetCategoriesQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
+} = categoriesApi;

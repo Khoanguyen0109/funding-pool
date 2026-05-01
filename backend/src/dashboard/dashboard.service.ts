@@ -170,7 +170,7 @@ export class DashboardService {
       .leftJoin('p.members', 'm')
       .leftJoin('p.contributions', 'c', 'c.deleted_at IS NULL')
       .leftJoin('p.expenses', 'e', 'e.deleted_at IS NULL')
-      .leftJoin('p.categories', 'cat')
+      .leftJoin('p.categories', 'cat', 'cat.deleted_at IS NULL')
       .select([
         'p.id AS id',
         'p.name AS name',
@@ -209,6 +209,7 @@ export class DashboardService {
         'COALESCE(SUM(e.amount), 0) AS spent',
       ])
       .where('cat.pool_id IN (:...poolIds)', { poolIds })
+      .andWhere('cat.deleted_at IS NULL')
       .groupBy('cat.id')
       .addGroupBy('cat.name')
       .addGroupBy('cat.budget_amount')
@@ -258,7 +259,7 @@ export class DashboardService {
   private async getSpendingBreakdown(poolIds: string[]): Promise<SpendingBreakdown[]> {
     const results = await this.expenseRepo
       .createQueryBuilder('e')
-      .innerJoin('e.category', 'cat')
+      .innerJoin('e.category', 'cat', 'cat.deleted_at IS NULL')
       .select('cat.name', 'name')
       .addSelect('COALESCE(SUM(e.amount), 0)', 'value')
       .where('e.pool_id IN (:...poolIds)', { poolIds })
