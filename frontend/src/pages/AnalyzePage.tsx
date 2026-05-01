@@ -25,8 +25,6 @@ export default function AnalyzePage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant="h4" sx={{ fontWeight: 700 }}>Analyze</Typography>
-
       {!hasData ? (
         <Typography color="text.secondary">
           No data yet. Add income and expenses to see your analytics.
