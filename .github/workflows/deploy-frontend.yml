@@ -9,7 +9,7 @@ on:
 env:
   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
   VERCEL_ORG_ID: team_RoQieT8VyEPbwe4XIu0Fhckb
-  VERCEL_PROJECT_ID: prj_WgUlB43ThTll45sssw0JJOJ6Dnbr
+  VERCEL_PROJECT_ID: prj_0orzqEDZuiecOEz3Vu0CPpf7UwaE
 
 jobs:
   deploy:

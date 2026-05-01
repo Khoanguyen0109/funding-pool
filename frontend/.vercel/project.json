@@ -1,9 +1,9 @@
 {
-  "projectId": "prj_WgUlB43ThTll45sssw0JJOJ6Dnbr",
+  "projectId": "prj_0orzqEDZuiecOEz3Vu0CPpf7UwaE",
   "orgId": "team_RoQieT8VyEPbwe4XIu0Fhckb",
-  "projectName": "frontend",
+  "projectName": "fundpool-frontend",
   "settings": {
-    "createdAt": 1777618154668,
+    "createdAt": 1776451739110,
     "framework": "vite",
     "devCommand": null,
     "installCommand": null,
