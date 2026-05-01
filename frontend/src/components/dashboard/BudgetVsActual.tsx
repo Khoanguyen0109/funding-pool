@@ -7,8 +7,8 @@ import {
   CHART_TOOLTIP_LABEL,
   CHART_TOOLTIP_ITEM,
   CHART_COLORS,
-  formatCurrency,
-  formatAxis,
+  formatChartCurrency,
+  formatChartAxis,
 } from '@/styles/chartConfig';
 
 interface CategoryBudget {
@@ -28,10 +28,10 @@ export default function BudgetVsActual({ data }: { data: CategoryBudget[] }) {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data} layout="vertical" margin={{ left: 20, right: 20 }}>
             <CartesianGrid {...CHART_GRID} />
-            <XAxis type="number" tickFormatter={formatAxis} tick={CHART_TICK} />
+            <XAxis type="number" tickFormatter={formatChartAxis} tick={CHART_TICK} />
             <YAxis dataKey="name" type="category" width={90} tick={CHART_TICK} />
             <Tooltip
-              formatter={(value) => formatCurrency(Number(value))}
+              formatter={(value) => formatChartCurrency(Number(value))}
               contentStyle={CHART_TOOLTIP_STYLE}
               labelStyle={CHART_TOOLTIP_LABEL}
               itemStyle={CHART_TOOLTIP_ITEM}

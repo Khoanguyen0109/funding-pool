@@ -14,6 +14,7 @@ export interface User {
   oauthProvider?: OAuthProvider;
   createdAt: string;
   defaultPoolId?: string | null;
+  locale?: string | null;
 }
 
 export interface Pool {

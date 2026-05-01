@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Card, CardContent, Typography } from '@mui/material';
 import {
   AreaChart,
@@ -16,9 +17,11 @@ import {
   CHART_TOOLTIP_LABEL,
   CHART_TOOLTIP_ITEM,
   CHART_COLORS,
-  formatCurrency,
-  formatAxis,
+  formatChartCurrency,
+  formatChartAxis,
 } from '@/styles/chartConfig';
+import { useLocale } from '@/context/LocaleContext';
+import { formatDashboardMonth } from '@/utils/dateDisplay';
 
 interface MonthlyFlow {
   month: string;
@@ -27,6 +30,16 @@ interface MonthlyFlow {
 }
 
 export default function ContributionsVsExpenses({ data }: { data: MonthlyFlow[] }) {
+  const { locale } = useLocale();
+  const chartData = useMemo(
+    () =>
+      data.map((row) => ({
+        ...row,
+        monthLabel: formatDashboardMonth(row.month),
+      })),
+    [data, locale],
+  );
+
   return (
     <Card>
       <CardContent sx={{ p: 2.5 }}>
@@ -34,7 +47,7 @@ export default function ContributionsVsExpenses({ data }: { data: MonthlyFlow[] 
           Contributions vs Expenses
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+          <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <defs>
               <linearGradient id="colorContrib" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={CHART_COLORS.contribution} stopOpacity={0.3} />
@@ -46,10 +59,10 @@ export default function ContributionsVsExpenses({ data }: { data: MonthlyFlow[] 
               </linearGradient>
             </defs>
             <CartesianGrid {...CHART_GRID} />
-            <XAxis dataKey="month" tick={CHART_TICK} />
-            <YAxis tickFormatter={formatAxis} tick={CHART_TICK} />
+            <XAxis dataKey="monthLabel" tick={CHART_TICK} />
+            <YAxis tickFormatter={formatChartAxis} tick={CHART_TICK} />
             <Tooltip
-              formatter={(value) => formatCurrency(Number(value))}
+              formatter={(value) => formatChartCurrency(Number(value))}
               contentStyle={CHART_TOOLTIP_STYLE}
               labelStyle={CHART_TOOLTIP_LABEL}
               itemStyle={CHART_TOOLTIP_ITEM}

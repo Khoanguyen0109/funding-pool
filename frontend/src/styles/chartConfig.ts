@@ -1,4 +1,5 @@
 import theme from './theme';
+import { getActiveLocale } from '@/utils/localeSync';
 
 const { chart, text } = theme.palette;
 
@@ -26,5 +27,21 @@ export const CHART_COLORS = {
   balance: chart.balance,
 } as const;
 
-export const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
-export const formatAxis = (value: number) => `$${value}`;
+export function formatChartCurrency(value: number): string {
+  const locale = getActiveLocale();
+  return new Intl.NumberFormat(locale, {
+    notation: Math.abs(value) >= 10_000 ? 'compact' : 'standard',
+    maximumFractionDigits: Math.abs(value) >= 10_000 ? 1 : 0,
+  }).format(value);
+}
+
+export function formatChartAxis(value: number): string {
+  const locale = getActiveLocale();
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 1 })}M`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toLocaleString(locale, { maximumFractionDigits: 0 })}K`;
+  }
+  return value.toLocaleString(locale);
+}

@@ -10,8 +10,14 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { formatMoney } from '@/utils/currency';
+import {
+  formatTransactionGroupDaily,
+  formatTransactionGroupMonthly,
+  formatLocaleDate,
+} from '@/utils/dateDisplay';
 import type { Transaction, Category } from '@/types';
 import { useDeleteTransactionMutation } from '@/store/api/transactionsApi';
+import { useLocale } from '@/context/LocaleContext';
 
 type GroupBy = 'none' | 'daily' | 'monthly';
 type TypeFilter = 'all' | 'income' | 'expense';
@@ -30,18 +36,15 @@ function getDateKey(dateStr: string, groupBy: GroupBy): string {
   return '';
 }
 
-function formatGroupLabel(key: string, groupBy: GroupBy): string {
-  if (groupBy === 'daily') {
-    return new Date(key + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  }
-  if (groupBy === 'monthly') {
-    return new Date(key + '-01T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  }
+function groupLabelFor(key: string, groupBy: GroupBy): string {
+  if (groupBy === 'daily') return formatTransactionGroupDaily(key);
+  if (groupBy === 'monthly') return formatTransactionGroupMonthly(key);
   return '';
 }
 
 export default function TransactionsTab({ poolId, transactions, categories, currency }: Props) {
   const theme = useTheme();
+  const { locale } = useLocale();
 
   const [deleteTransaction, { isLoading: isDeleting }] = useDeleteTransactionMutation();
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
@@ -102,8 +105,8 @@ export default function TransactionsTab({ poolId, transactions, categories, curr
 
     return Array.from(map.entries())
       .sort(([a], [b]) => b.localeCompare(a))
-      .map(([key, items]) => ({ key, label: formatGroupLabel(key, groupBy), items }));
-  }, [filtered, groupBy]);
+      .map(([key, items]) => ({ key, label: groupLabelFor(key, groupBy), items }));
+  }, [filtered, groupBy, locale]);
 
   const usedCategories = useMemo(() => {
     const ids = new Set(transactions.filter((t) => t.category).map((t) => t.category!.id));
@@ -364,7 +367,7 @@ export default function TransactionsTab({ poolId, transactions, categories, curr
                           {tx.description}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {tx.user.name} · {new Date(tx.transactionDate || tx.createdAt).toLocaleDateString()}
+                          {tx.user.name} · {formatLocaleDate(tx.transactionDate || tx.createdAt)}
                           {tx.category && ` · ${tx.category.icon} ${tx.category.name}`}
                         </Typography>
                       </Box>

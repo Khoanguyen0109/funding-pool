@@ -51,6 +51,10 @@ export class User {
   @Column({ name: 'default_pool_id', nullable: true })
   defaultPoolId: string | null;
 
+  /** BCP 47 locale for date/time and number formatting; defaults to Vietnam. */
+  @Column({ nullable: true, default: 'vi-VN' })
+  locale: string | null;
+
   @ManyToOne(() => Pool, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'default_pool_id' })
   defaultPool: Pool | null;

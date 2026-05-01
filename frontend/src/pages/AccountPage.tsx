@@ -1,4 +1,20 @@
-import { Box, Typography, Avatar, Card, CardContent, Stack, Button, Divider, CircularProgress } from '@mui/material';
+import { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Avatar,
+  Card,
+  CardContent,
+  Stack,
+  Button,
+  Divider,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  type SelectChangeEvent,
+} from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { logout } from '@/store/authSlice';
@@ -6,17 +22,30 @@ import { apiSlice } from '@/store/api/apiSlice';
 import { useNavigate } from 'react-router-dom';
 import { useGetDashboardQuery } from '@/store/api/dashboardApi';
 import { formatMoney } from '@/utils/currency';
+import { DATETIME_LOCALE_OPTIONS } from '@/constants/datetimeLocale';
+import { useLocale } from '@/context/LocaleContext';
 
 export default function AccountPage() {
   const user = useAppSelector((s) => s.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { data, isLoading } = useGetDashboardQuery();
+  const { locale, setLocale } = useLocale();
+  const [localeSaving, setLocaleSaving] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
     dispatch(apiSlice.util.resetApiState());
     navigate('/login', { replace: true });
+  };
+
+  const handleLocaleChange = async (e: SelectChangeEvent<string>) => {
+    setLocaleSaving(true);
+    try {
+      await setLocale(e.target.value);
+    } finally {
+      setLocaleSaving(false);
+    }
   };
 
   const summary = data?.summary;
@@ -42,6 +71,37 @@ export default function AccountPage() {
               <Typography variant="body2" color="text.secondary">{user?.email ?? user?.phone ?? '—'}</Typography>
             </Box>
           </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+            Date & number format
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Applies to dates, charts, and currency display across the app. Saved to your account when signed in and to this device otherwise.
+          </Typography>
+          <FormControl fullWidth size="small" disabled={localeSaving}>
+            <InputLabel id="datetime-locale-label">Locale</InputLabel>
+            <Select<string>
+              labelId="datetime-locale-label"
+              label="Locale"
+              value={locale}
+              onChange={handleLocaleChange}
+            >
+              {DATETIME_LOCALE_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {localeSaving && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <CircularProgress size={22} />
+            </Box>
+          )}
         </CardContent>
       </Card>
 

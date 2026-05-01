@@ -74,24 +74,24 @@ export class AuthService {
   }
 
   async patchMe(userId: string, dto: UpdateMeDto): Promise<Omit<User, 'password'>> {
-    if (dto.defaultPoolId === undefined) {
-      const user = await this.usersService.findById(userId);
-      if (!user) throw new UnauthorizedException();
-      return this.stripPassword(user);
+    if (dto.defaultPoolId !== undefined) {
+      if (dto.defaultPoolId === null) {
+        await this.usersService.update(userId, { defaultPoolId: null });
+      } else {
+        const membership = await this.poolsService.getMembership(dto.defaultPoolId, userId);
+        if (!membership) {
+          throw new ForbiddenException('You are not a member of this pool');
+        }
+        const pool = await this.poolsService.findById(dto.defaultPoolId);
+        if (!pool) {
+          throw new ForbiddenException('Pool not found');
+        }
+        await this.usersService.update(userId, { defaultPoolId: dto.defaultPoolId });
+      }
     }
 
-    if (dto.defaultPoolId === null) {
-      await this.usersService.update(userId, { defaultPoolId: null });
-    } else {
-      const membership = await this.poolsService.getMembership(dto.defaultPoolId, userId);
-      if (!membership) {
-        throw new ForbiddenException('You are not a member of this pool');
-      }
-      const pool = await this.poolsService.findById(dto.defaultPoolId);
-      if (!pool) {
-        throw new ForbiddenException('Pool not found');
-      }
-      await this.usersService.update(userId, { defaultPoolId: dto.defaultPoolId });
+    if (dto.locale !== undefined) {
+      await this.usersService.update(userId, { locale: dto.locale });
     }
 
     const user = await this.usersService.findById(userId);

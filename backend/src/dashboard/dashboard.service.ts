@@ -250,7 +250,7 @@ export class DashboardService {
     const expenseMap = new Map(expenses.map((e) => [e.month, parseFloat(e.total)]));
 
     return months.map((m) => ({
-      month: m.label,
+      month: m.key,
       contributions: contribMap.get(m.key) ?? 0,
       expenses: expenseMap.get(m.key) ?? 0,
     }));
@@ -317,20 +317,18 @@ export class DashboardService {
       const monthExpense = allExpenseMap.get(m.key) ?? 0;
       const savings = monthContrib - monthExpense;
       runningBalance += savings;
-      return { month: m.label, balance: runningBalance, savings };
+      return { month: m.key, balance: runningBalance, savings };
     });
   }
 
-  private getLast6Months(): { key: string; label: string; start: Date }[] {
-    const result: { key: string; label: string; start: Date }[] = [];
+  private getLast6Months(): { key: string; start: Date }[] {
+    const result: { key: string; start: Date }[] = [];
     const now = new Date();
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       result.push({
         key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-        label: monthNames[d.getMonth()],
         start: d,
       });
     }

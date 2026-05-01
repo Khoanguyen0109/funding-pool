@@ -14,7 +14,7 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { id } });
   }
 
-  async update(userId: string, partial: Partial<Pick<User, 'defaultPoolId'>>): Promise<void> {
+  async update(userId: string, partial: Partial<Pick<User, 'defaultPoolId' | 'locale'>>): Promise<void> {
     await this.usersRepository.update(userId, partial);
   }
 

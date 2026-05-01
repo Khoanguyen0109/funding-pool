@@ -37,7 +37,7 @@ const authApi = apiSlice.injectEndpoints({
       providesTags: ['User'],
     }),
 
-    patchMe: builder.mutation<User, { defaultPoolId?: string | null }>({
+    patchMe: builder.mutation<User, { defaultPoolId?: string | null; locale?: string }>({
       query: (body) => ({
         url: '/auth/me',
         method: 'PATCH',

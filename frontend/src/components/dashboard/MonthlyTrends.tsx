@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Card, CardContent, Typography } from '@mui/material';
 import {
   ComposedChart,
@@ -17,9 +18,11 @@ import {
   CHART_TOOLTIP_LABEL,
   CHART_TOOLTIP_ITEM,
   CHART_COLORS,
-  formatCurrency,
-  formatAxis,
+  formatChartCurrency,
+  formatChartAxis,
 } from '@/styles/chartConfig';
+import { useLocale } from '@/context/LocaleContext';
+import { formatDashboardMonth } from '@/utils/dateDisplay';
 
 interface TrendData {
   month: string;
@@ -28,6 +31,16 @@ interface TrendData {
 }
 
 export default function MonthlyTrends({ data }: { data: TrendData[] }) {
+  const { locale } = useLocale();
+  const chartData = useMemo(
+    () =>
+      data.map((row) => ({
+        ...row,
+        monthLabel: formatDashboardMonth(row.month),
+      })),
+    [data, locale],
+  );
+
   return (
     <Card>
       <CardContent sx={{ p: 2.5 }}>
@@ -35,13 +48,13 @@ export default function MonthlyTrends({ data }: { data: TrendData[] }) {
           Monthly Balance & Savings Trend
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+          <ComposedChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid {...CHART_GRID} />
-            <XAxis dataKey="month" tick={CHART_TICK} />
-            <YAxis yAxisId="left" tickFormatter={formatAxis} tick={CHART_TICK} />
-            <YAxis yAxisId="right" orientation="right" tickFormatter={formatAxis} tick={CHART_TICK} />
+            <XAxis dataKey="monthLabel" tick={CHART_TICK} />
+            <YAxis yAxisId="left" tickFormatter={formatChartAxis} tick={CHART_TICK} />
+            <YAxis yAxisId="right" orientation="right" tickFormatter={formatChartAxis} tick={CHART_TICK} />
             <Tooltip
-              formatter={(value) => formatCurrency(Number(value))}
+              formatter={(value) => formatChartCurrency(Number(value))}
               contentStyle={CHART_TOOLTIP_STYLE}
               labelStyle={CHART_TOOLTIP_LABEL}
               itemStyle={CHART_TOOLTIP_ITEM}

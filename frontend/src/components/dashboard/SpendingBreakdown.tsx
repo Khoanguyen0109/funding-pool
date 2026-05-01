@@ -4,7 +4,7 @@ import {
   CHART_TOOLTIP_STYLE,
   CHART_TOOLTIP_LABEL,
   CHART_TOOLTIP_ITEM,
-  formatCurrency,
+  formatChartCurrency,
 } from '@/styles/chartConfig';
 
 interface SpendingCategory {
@@ -40,7 +40,7 @@ export default function SpendingBreakdown({ data }: { data: SpendingCategory[] }
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value) => formatCurrency(Number(value))}
+                formatter={(value) => formatChartCurrency(Number(value))}
                 contentStyle={CHART_TOOLTIP_STYLE}
                 labelStyle={CHART_TOOLTIP_LABEL}
                 itemStyle={CHART_TOOLTIP_ITEM}

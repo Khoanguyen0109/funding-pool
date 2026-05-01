@@ -13,7 +13,13 @@ import {
   CHART_TOOLTIP_LABEL, CHART_TOOLTIP_ITEM, CHART_COLORS,
 } from '@/styles/chartConfig';
 import { formatMoney } from '@/utils/currency';
+import {
+  formatPoolSummaryMonth,
+  formatPoolSummaryDayPoint,
+  formatLocaleDate,
+} from '@/utils/dateDisplay';
 import type { Transaction, Category } from '@/types';
+import { useLocale } from '@/context/LocaleContext';
 
 const PIE_COLORS = [
   '#6C5CE7', '#00B894', '#E17055', '#0984E3', '#FDCB6E',
@@ -29,6 +35,7 @@ interface Props {
 }
 
 export default function PoolSummaryTab({ transactions, categories, currency, poolColor, memberCount }: Props) {
+  const { locale } = useLocale();
   const incomes = transactions.filter((t) => t.type === 'income');
   const expenses = transactions.filter((t) => t.type === 'expense');
   const totalIncome = incomes.reduce((s, t) => s + t.amount, 0);
@@ -87,12 +94,12 @@ export default function PoolSummaryTab({ transactions, categories, currency, poo
     return Array.from(map.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, data]) => ({
-        month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+        month: formatPoolSummaryMonth(month),
         income: data.income,
         expense: data.expense,
         net: data.income - data.expense,
       }));
-  }, [transactions]);
+  }, [transactions, locale]);
 
   const balanceOverTime = useMemo(() => {
     const sorted = [...transactions].sort(
@@ -103,7 +110,7 @@ export default function PoolSummaryTab({ transactions, categories, currency, poo
     for (const tx of sorted) {
       running += tx.type === 'income' ? tx.amount : -tx.amount;
       points.push({
-        date: new Date(tx.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: formatPoolSummaryDayPoint(tx.createdAt),
         balance: running,
       });
     }
@@ -112,7 +119,7 @@ export default function PoolSummaryTab({ transactions, categories, currency, poo
       return points.filter((_, i) => i % step === 0 || i === points.length - 1);
     }
     return points;
-  }, [transactions]);
+  }, [transactions, locale]);
 
   if (transactions.length === 0 && categories.length === 0) {
     return (
@@ -510,7 +517,7 @@ export default function PoolSummaryTab({ transactions, categories, currency, poo
                         {tx.description}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {tx.user.name} · {new Date(tx.createdAt).toLocaleDateString()}
+                        {tx.user.name} · {formatLocaleDate(tx.createdAt)}
                       </Typography>
                     </Box>
                     <Typography

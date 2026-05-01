@@ -1,3 +1,5 @@
+import { getActiveLocale } from '@/utils/localeSync';
+
 export interface CurrencyOption {
   code: string;
   name: string;
@@ -35,11 +37,17 @@ export function getCurrencySymbol(code: string): string {
 
 const formatterCache = new Map<string, Intl.NumberFormat>();
 
+function cacheKey(currency: string, locale: string): string {
+  return `${locale}\0${currency}`;
+}
+
 function getFormatter(currency: string): Intl.NumberFormat {
-  if (!formatterCache.has(currency)) {
+  const locale = getActiveLocale();
+  const key = cacheKey(currency, locale);
+  if (!formatterCache.has(key)) {
     formatterCache.set(
-      currency,
-      new Intl.NumberFormat('en-US', {
+      key,
+      new Intl.NumberFormat(locale, {
         style: 'currency',
         currency,
         minimumFractionDigits: 0,
@@ -47,7 +55,7 @@ function getFormatter(currency: string): Intl.NumberFormat {
       }),
     );
   }
-  return formatterCache.get(currency)!;
+  return formatterCache.get(key)!;
 }
 
 export function formatMoney(amount: number, currency = 'VND'): string {
