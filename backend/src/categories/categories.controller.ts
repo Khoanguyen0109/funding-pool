@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PoolsService } from '../pools/pools.service';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 import { User } from '../users/entities/user.entity';
 
 @Controller('pools/:poolId/categories')
@@ -29,5 +30,17 @@ export class CategoriesController {
     const user = req.user as User;
     await this.poolsService.requireMembership(poolId, user.id);
     return this.categoriesService.create(poolId, dto);
+  }
+
+  @Patch(':categoryId')
+  async update(
+    @Param('poolId') poolId: string,
+    @Param('categoryId') categoryId: string,
+    @Body() dto: UpdateCategoryDto,
+    @Req() req: any,
+  ) {
+    const user = req.user as User;
+    await this.poolsService.requireMembership(poolId, user.id);
+    return this.categoriesService.update(categoryId, poolId, dto);
   }
 }

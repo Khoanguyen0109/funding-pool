@@ -9,6 +9,15 @@ interface CreateCategoryPayload {
   sortOrder?: number;
 }
 
+interface UpdateCategoryPayload {
+  poolId: string;
+  categoryId: string;
+  name?: string;
+  icon?: string;
+  budgetAmount?: number;
+  sortOrder?: number;
+}
+
 const categoriesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getCategories: builder.query<Category[], string>({
@@ -26,7 +35,19 @@ const categoriesApi = apiSlice.injectEndpoints({
         { type: 'Pool', id: poolId },
       ],
     }),
+    updateCategory: builder.mutation<Category, UpdateCategoryPayload>({
+      query: ({ poolId, categoryId, ...body }) => ({
+        url: `/pools/${poolId}/categories/${categoryId}`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { poolId }) => [
+        { type: 'Category', id: poolId },
+        { type: 'Pool', id: poolId },
+        'Dashboard',
+      ],
+    }),
   }),
 });
 
-export const { useGetCategoriesQuery, useCreateCategoryMutation } = categoriesApi;
+export const { useGetCategoriesQuery, useCreateCategoryMutation, useUpdateCategoryMutation } = categoriesApi;

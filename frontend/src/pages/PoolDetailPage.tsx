@@ -4,6 +4,7 @@ import {
   Box, Typography, Button, CircularProgress, Stack, Card, CardContent,
   Chip, Avatar, Divider, IconButton, Tab, Tabs, Menu, MenuItem, ListItemIcon, ListItemText,
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import { alpha, useTheme } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
@@ -25,6 +26,7 @@ import { formatMoney } from '@/utils/currency';
 import AddIncomeDialog from '@/components/pools/AddIncomeDialog';
 import AddExpenseDialog from '@/components/pools/AddExpenseDialog';
 import AddCategoryDialog from '@/components/pools/AddCategoryDialog';
+import EditCategoryDialog from '@/components/pools/EditCategoryDialog';
 import DeletePoolDialog from '@/components/pools/DeletePoolDialog';
 import SharePoolDialog from '@/components/pools/SharePoolDialog';
 import PendingMembersSection from '@/components/pools/PendingMembersSection';
@@ -48,6 +50,7 @@ export default function PoolDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [editCategoryTarget, setEditCategoryTarget] = useState<import('@/types').Category | null>(null);
 
   const user = useAppSelector((s) => s.auth.user);
   const defaultPoolId = user?.defaultPoolId ?? null;
@@ -261,7 +264,15 @@ export default function PoolDetailPage() {
                   <CardContent sx={{ p: 2 }}>
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
                       <Typography sx={{ fontSize: 20 }}>{cat.icon}</Typography>
-                      <Typography variant="subtitle2">{cat.name}</Typography>
+                      <Typography variant="subtitle2" sx={{ flex: 1 }}>{cat.name}</Typography>
+                      <IconButton
+                        size="small"
+                        onClick={() => setEditCategoryTarget(cat)}
+                        sx={{ color: 'text.secondary' }}
+                        aria-label={`Edit ${cat.name}`}
+                      >
+                        <EditIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
                       Budget: {formatMoney(cat.budgetAmount, poolCurrency)}
@@ -305,6 +316,13 @@ export default function PoolDetailPage() {
       <AddIncomeDialog poolId={id!} currency={poolCurrency} open={incomeOpen} onClose={() => setIncomeOpen(false)} />
       <AddExpenseDialog poolId={id!} currency={poolCurrency} categories={categories} open={expenseOpen} onClose={() => setExpenseOpen(false)} />
       <AddCategoryDialog poolId={id!} currency={poolCurrency} open={categoryOpen} onClose={() => setCategoryOpen(false)} />
+      <EditCategoryDialog
+        poolId={id!}
+        currency={poolCurrency}
+        category={editCategoryTarget}
+        open={Boolean(editCategoryTarget)}
+        onClose={() => setEditCategoryTarget(null)}
+      />
       <DeletePoolDialog
         poolId={id!}
         poolName={pool.name}
