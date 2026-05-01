@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, CircularProgress, Stack, Card, CardContent,
   Chip, Avatar, Divider, IconButton, Tab, Tabs, Menu, MenuItem, ListItemIcon, ListItemText,
-  Dialog, DialogTitle, DialogContent, DialogActions, Alert,
+  Dialog, DialogTitle, DialogContent, DialogActions, Alert, LinearProgress,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
@@ -84,6 +84,16 @@ export default function PoolDetailPage() {
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
   const balance = totalContributions - totalExpenses;
+
+  const spentByCategory = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const tx of transactions) {
+      if (tx.type === 'expense' && tx.category) {
+        map.set(tx.category.id, (map.get(tx.category.id) ?? 0) + tx.amount);
+      }
+    }
+    return map;
+  }, [transactions]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -264,35 +274,67 @@ export default function PoolDetailPage() {
             <Typography color="text.secondary">No categories yet. Add one to organize expenses.</Typography>
           ) : (
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-              {categories.map((cat) => (
-                <Card key={cat.id}>
-                  <CardContent sx={{ p: 2 }}>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
-                      <Typography sx={{ fontSize: 20 }}>{cat.icon}</Typography>
-                      <Typography variant="subtitle2" sx={{ flex: 1 }}>{cat.name}</Typography>
-                      <IconButton
-                        size="small"
-                        onClick={() => setEditCategoryTarget(cat)}
-                        sx={{ color: 'text.secondary' }}
-                        aria-label={`Edit ${cat.name}`}
-                      >
-                        <EditIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => { setDeleteCategoryError(null); setDeleteCategoryTarget(cat); }}
-                        sx={{ color: 'text.secondary' }}
-                        aria-label={`Delete ${cat.name}`}
-                      >
-                        <DeleteOutlineOutlinedIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary">
-                      Budget: {formatMoney(cat.budgetAmount, poolCurrency)}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))}
+              {categories.map((cat) => {
+                const spent = spentByCategory.get(cat.id) ?? 0;
+                const budget = Number(cat.budgetAmount);
+                const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
+                const isOver = spent > budget;
+                const isWarning = !isOver && pct >= 80;
+                const barColor = isOver ? 'error.main' : isWarning ? 'warning.main' : 'success.main';
+                const remaining = budget - spent;
+                return (
+                  <Card key={cat.id} sx={isOver ? { borderLeft: '3px solid', borderColor: 'error.main' } : undefined}>
+                    <CardContent sx={{ p: 2 }}>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
+                        <Typography sx={{ fontSize: 20 }}>{cat.icon}</Typography>
+                        <Typography variant="subtitle2" sx={{ flex: 1 }}>{cat.name}</Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() => setEditCategoryTarget(cat)}
+                          sx={{ color: 'text.secondary' }}
+                          aria-label={`Edit ${cat.name}`}
+                        >
+                          <EditIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => { setDeleteCategoryError(null); setDeleteCategoryTarget(cat); }}
+                          sx={{ color: 'text.secondary' }}
+                          aria-label={`Delete ${cat.name}`}
+                        >
+                          <DeleteOutlineOutlinedIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Stack>
+
+                      {/* Progress bar */}
+                      <LinearProgress
+                        variant="determinate"
+                        value={pct}
+                        sx={{
+                          height: 6, borderRadius: 3, mb: 1,
+                          bgcolor: 'action.hover',
+                          '& .MuiLinearProgress-bar': { borderRadius: 3, bgcolor: barColor },
+                        }}
+                      />
+
+                      {/* Spent / Budget row */}
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatMoney(spent, poolCurrency)} spent
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: isOver ? 'error.main' : 'text.secondary' }}>
+                          {isOver
+                            ? `${formatMoney(Math.abs(remaining), poolCurrency)} over`
+                            : `${formatMoney(remaining, poolCurrency)} left`}
+                        </Typography>
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">
+                        Budget: {formatMoney(budget, poolCurrency)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </Box>
           )}
         </Box>

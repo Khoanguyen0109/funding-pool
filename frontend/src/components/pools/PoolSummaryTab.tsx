@@ -397,6 +397,55 @@ export default function PoolSummaryTab({ transactions, categories, currency, poo
         </Card>
       )}
 
+      {/* Category Budget Progress */}
+      {categorySpending.length > 0 && (
+        <Card>
+          <CardContent sx={{ p: 2.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+              Category Budget Progress
+            </Typography>
+            <Stack spacing={2}>
+              {categorySpending.map((cat) => {
+                const pct = cat.budget > 0 ? Math.min((cat.spent / cat.budget) * 100, 100) : 0;
+                const isOver = cat.spent > cat.budget;
+                const isWarning = !isOver && pct >= 80;
+                const barColor = isOver ? '#D63031' : isWarning ? '#FDCB6E' : '#00B894';
+                const remaining = cat.budget - cat.spent;
+                return (
+                  <Box key={cat.name}>
+                    <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{cat.name}</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: isOver ? 'error.main' : 'text.secondary' }}>
+                        {isOver
+                          ? `${formatMoney(Math.abs(remaining), currency)} over budget`
+                          : `${formatMoney(remaining, currency)} left`}
+                      </Typography>
+                    </Stack>
+                    <LinearProgress
+                      variant="determinate"
+                      value={pct}
+                      sx={{
+                        height: 8, borderRadius: 4, mb: 0.5,
+                        bgcolor: 'action.hover',
+                        '& .MuiLinearProgress-bar': { borderRadius: 4, bgcolor: barColor },
+                      }}
+                    />
+                    <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatMoney(cat.spent, currency)} spent
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatMoney(cat.budget, currency)} budget
+                      </Typography>
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Bottom row: Member contributions + Recent Activity */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 2.5 }}>
         {/* Member contributions */}

@@ -61,11 +61,25 @@ export default function AddExpenseDialog({ poolId, currency, categories, open, o
           ) : (
             <>
               <TextField
+                label="Category"
+                select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                fullWidth
+                required
+                autoFocus
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.id}>
+                    {cat.icon} {cat.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
                 label="Amount"
                 value={displayAmount}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 fullWidth
-                autoFocus
                 required
                 slotProps={{
                   htmlInput: { inputMode: 'decimal' },
@@ -90,20 +104,6 @@ export default function AddExpenseDialog({ poolId, currency, categories, open, o
                 fullWidth
                 slotProps={{ inputLabel: { shrink: true } }}
               />
-              <TextField
-                label="Category"
-                select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                fullWidth
-                required
-              >
-                {categories.map((cat) => (
-                  <MenuItem key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.name}
-                  </MenuItem>
-                ))}
-              </TextField>
             </>
           )}
         </Stack>
